@@ -167,10 +167,74 @@ int isMoveValid(int currentState, int action){
 // Fungsi : deepFirstSearch
 // Deskripsi : mencari path dengan algoritma DFS
 // Parameter:
-// 
-// 
-int deepFirstSearch(..., ..., ...){
-	// ------------ Tulis kode anda pada bagian ini ----------------------- //
+//     *currentState : posisi state robot saat ini
+//     *destinationState : posisi state tujuan
+//     *counter : counter untuk menyimpan banyaknya perulangan yang telah terjadi
+int deepFirstSearch(int *currentState, int *destinationState, int counter){
+	// mengupdate state yang telah dikunjungi
+	*(visitedState + counter) = *currentState;
+
+	// Bila path ditemukan
+	if(*currentState == *destinationState){
+		for(int i = 0; i<counter; i++){
+			printf("%d->", *(visitedState + i));
+		}
+		printf("%d Goal!", *currentState);
+		printf("\n");
+		return 1;
+	}
+
+	// Depth First Search
+	// 1) bergerak ke kanan terus sampai mentok
+	// 2) bergerak ke atas dan mengulang step pertama sampai tidak bisa bergerak ke atas lagi
+	// 3) bergerak ke kiri dan mengulang step pertama dan kedua sampai tidak bisa bergerak ke kiri lagi
+	// 4) bergerak ke bawah dan mengulang step pertama, kedua, dan ketiga sampai tidak bisa bergerak ke bawah lagi
+	// 5) Apabila sudah mencapai ujung, kembali ke state sebelumnya 
+
+	// Mengecek apakah bergerak ke kanan valid
+	if(isMoveValid(*currentState, 0) && isNotVisited(*currentState+1, visitedState)){
+		// Robot bergerak ke kanan
+		*currentState += 1;
+		deepFirstSearch(currentState, destinationState, counter+1);
+
+		// Apabila sudah mentok, robot akan kembali
+		*currentState -= 1;
+	}
+
+	// Mengecek apakah bergerak ke atas valid
+	if(isMoveValid(*currentState, 1) && isNotVisited(*currentState-columnSize, visitedState)){
+		// Robot bergerak ke atas
+		*currentState -= columnSize;
+		deepFirstSearch(currentState, destinationState, counter+1);
+		
+		// Apabila sudah mentok, robot akan kembali
+		*currentState += columnSize;
+	}
+
+	// Mengecek apakah bergerak ke kiri valid
+	if(isMoveValid(*currentState, 2) && isNotVisited(*currentState-1, visitedState)){
+		// Robot bergerak ke kiri
+		*currentState -= 1;
+		deepFirstSearch(currentState, destinationState, counter+1);
+		
+		// Apabila sudah mentok, robot akan kembali
+		*currentState += 1;
+	}
+
+	// Mengecek apakah bergerak ke bawah valid
+	if(isMoveValid(*currentState, 3) && isNotVisited(*currentState+columnSize, visitedState)){
+		// Robot bergerak ke bawah
+		*currentState += columnSize;
+		deepFirstSearch(currentState, destinationState, counter+1);
+		
+		// Apabila sudah mentok, robot akan kembali
+		*currentState -= columnSize;
+	}
+
+	// Bila sudah tidak ada pergerakan yang memungkinkan, kembali ke state sebelumnya
+	*(visitedState + counter) = -1;
+
+	return 0;
 }
 
 // =========================================================================
@@ -183,13 +247,13 @@ void searchPath(int *currentState, int *destinationState){
 	// Mengalokasikan memori
 	visitedState = (int*)malloc(columnSize*rowSize*sizeof(int));
 
-	// Inisialisasi array visitedState
+	// Inisialisasi
 	for(int i = 0; i<columnSize*rowSize; i++){
 		*(visitedState + i) = -1;
 	}
 
-	// Mencari path dengan algoritma DFS
-	deepFirstSearch(..., ..., ...);
+	// Mencari Path
+	deepFirstSearch(currentState, destinationState, 0);
 }
 
 int main(){
@@ -204,11 +268,16 @@ int main(){
 	scanf("%d",&start);
 	printf("State tujuan: ");
 	scanf("%d",&dest);
-	
-	// Mencari jalan
-	searchPath(&start, &dest);
 
-	// Dealokasi dynamic array
+	// Mencari path kalau masukan benar. Ketika praktikum, input diasumsikan selalu benar
+	if (*(environment+start) != 'x' && *(environment+dest) != 'x' ){
+		searchPath(&start, &dest);
+	}
+	else{
+		printf("State masukan tidak valid!");
+	}
+
+	// dealokasi dynamic array
 	free(environment);
 	free(visitedState);
 
